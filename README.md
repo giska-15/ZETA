@@ -111,8 +111,8 @@ Install these first:
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/03ntity/OpenClaw2026_HeavenlyDemonCult_KomunitasAI.git
-cd OpenClaw2026_HeavenlyDemonCult_KomunitasAI
+git clone https://github.com/03ntity/KomunitasAI.git
+cd KomunitasAI
 ```
 
 ### 2. Install Dependencies
