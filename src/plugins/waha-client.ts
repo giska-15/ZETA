@@ -46,6 +46,105 @@ export class WahaClient {
     });
   }
 
+  /**
+   * Kirim gambar dari URL (dipakai untuk QRIS & screenshot bukti bayar).
+   */
+  async sendImageFromUrl(params: {
+    phone: string;
+    imageUrl: string;
+    caption?: string;
+    filename?: string;
+    mimetype?: string;
+  }): Promise<void> {
+    await this.post("/api/sendImage", {
+      session: this.session,
+      chatId: toWahaChatId(params.phone),
+      file: {
+        mimetype: params.mimetype ?? "image/jpeg",
+        url: params.imageUrl,
+        filename: params.filename ?? "image.jpg",
+      },
+      caption: params.caption ?? "",
+    });
+  }
+
+  /**
+   * Kirim file dari base64 (dipakai untuk QRIS yang di-generate lokal).
+   */
+  async sendFileFromBase64(params: {
+    phone: string;
+    base64: string;
+    filename: string;
+    caption?: string;
+    mimetype?: string;
+  }): Promise<void> {
+    await this.post("/api/sendFile", {
+      session: this.session,
+      chatId: toWahaChatId(params.phone),
+      file: {
+        mimetype: params.mimetype ?? "image/png",
+        data: params.base64,
+        filename: params.filename,
+      },
+      caption: params.caption ?? "",
+    });
+  }
+
+  /**
+   * Ambil URL media dari pesan WhatsApp (untuk foto produk user).
+   */
+  async getMediaUrl(messageId: string): Promise<string | null> {
+    if (!this.isConfigured) return null;
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/api/getMediaUrl/${encodeURIComponent(messageId)}?session=${this.session}`,
+        { headers: { "X-Api-Key": this.apiKey } },
+      );
+      if (!response.ok) return null;
+      const body = await response.json().catch(() => null);
+      const url =
+        body?.url ?? body?.data?.url ?? body?.payload?.url ?? body?.mediaUrl;
+      return typeof url === "string" ? url : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Download file dari URL media WAHA (auth header diperlukan).
+   */
+  async downloadMedia(mediaUrl: string): Promise<Buffer | null> {
+    if (!this.isConfigured) return null;
+    try {
+      const response = await fetch(mediaUrl, {
+        headers: { "X-Api-Key": this.apiKey },
+      });
+      if (!response.ok) return null;
+      return Buffer.from(await response.arrayBuffer());
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Cek apakah session WhatsApp aktif.
+   */
+  async isSessionActive(): Promise<boolean> {
+    if (!this.isConfigured) return false;
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/api/sessions/${this.session}`,
+        { headers: { "X-Api-Key": this.apiKey } },
+      );
+      if (!response.ok) return false;
+      const body = await response.json().catch(() => null);
+      const status = body?.status ?? body?.state;
+      return status === "WORKING" || status === "STARTED" || status === "SCAN_QR_CODE" ? status === "WORKING" || status === "STARTED" : Boolean(body);
+    } catch {
+      return false;
+    }
+  }
+
   private async post(
     path: string,
     body: Record<string, unknown>,
@@ -67,6 +166,34 @@ export class WahaClient {
         `WAHA request failed: ${response.status} ${response.statusText}${detail ? ` - ${detail}` : ""}`,
       );
     }
+  }
+
+  /**
+   * POST dengan parsing JSON response.
+   */
+  private async postJson<T = unknown>(
+    path: string,
+    body: Record<string, unknown>,
+  ): Promise<T> {
+    if (!this.isConfigured) throw new Error("WAHA client is not configured");
+
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": this.apiKey,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "");
+      throw new Error(
+        `WAHA request failed: ${response.status} ${response.statusText}${detail ? ` - ${detail}` : ""}`,
+      );
+    }
+
+    return (await response.json().catch(() => null)) as T;
   }
 }
 

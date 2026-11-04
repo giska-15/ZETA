@@ -1,50 +1,36 @@
-# KomunitasAI
+# Zeta — Asisten Belanja WhatsApp
 
-**Autonomous AI treasurer for Indonesian communities.**
+**Asisten Belanja WhatsApp berbasis AI — search produk dari foto, hitung ongkir & fee, checkout otomatis via Shopee.**
 
-KomunitasAI adalah agent bendahara digital berbasis ElizaOS untuk membantu RT/RW, arisan, koperasi, event, dan patungan mengelola kas komunitas lewat chat. Agent dapat membuat tagihan DOKU, mengirim invoice ke WhatsApp, memantau pembayaran, mencatat pemasukan/pengeluaran kas, mengirim reminder, dan membuat laporan bulanan.
+Zeta adalah asisten belanja digital berbasis ElizaOS yang membantu пользователь Indonesia belanja di Shopee lewat WhatsApp. Kirim foto produk, Zeta akan mencari, rekomendasi, hitung ongkir & fee, buat pembayaran QRIS, dan checkout otomatis.
 
-## What It Does
+## What Zeta Does
 
-- **Conversational onboarding**: buat komunitas dan daftar anggota cukup lewat chat.
-- **DOKU payment integration**: buat payment link, QRIS, dan virtual account/bank transfer.
-- **WhatsApp delivery via WAHA**: kirim invoice, QRIS sebagai gambar, reminder, dan konfirmasi pembayaran ke WhatsApp.
-- **DOKU webhook**: saat pembayaran sukses, agent otomatis menandai invoice lunas dan mencatat kas masuk.
-- **Payment notifications**: member yang ditagih, admin/bendahara, dan user yang menjalankan workflow bisa menerima notifikasi pembayaran sukses.
-- **Idempotent notification delivery**: pesan WhatsApp dilindungi dari double-send saat scheduler/action berjalan bersamaan.
-- **Autonomous workflow schedule**: workflow bisa dijalankan manual atau dijadwalkan, misalnya setiap 1 menit, 1 jam, atau harian.
-- **Cash ledger**: catat pemasukan/pengeluaran kas seperti `catat pengeluaran Rp 20.000 untuk bayar sampah`.
-- **Monthly report**: laporan bulanan berisi pemasukan, pengeluaran, net balance, collection rate, dan status pembayaran anggota.
-- **React dashboard**: dashboard lokal untuk melihat ringkasan komunitas, anggota, invoice, kas, dan log aktivitas.
+- **Visual Product Search**: Kirim foto produk, Zeta akan mencari di Shopee menggunakan Google Vision atau Apify.
+- **Price Range Filter**: Filter hasil pencarian berdasarkan budget kamu.
+- **Product Recommendations**: Zeta merekomendasikan produk terbaik berdasarkan rating.
+- **Shipping Calculator**: Hitung ongkir ke kota tujuan kamu via RajaOngkir.
+- **Fee Calculator**: Biaya layanan bertingkat (2% - 0.75%) dari subtotal.
+- **QRIS Payment**: Zeta buat invoice QRIS via DOKU dan kirim ke WhatsApp kamu.
+- **Auto Checkout**: Setelah pembayaran berhasil, Zeta otomatis checkout ke Shopee menggunakan Playwright.
+- **Order Confirmation**: Zeta kirim screenshot bukti pesanan ke WhatsApp.
 
 ## Example Chat Commands
 
 ```text
-buat komunitas baru
+cari produk dari foto ini
 ```
 
 ```text
-tagih semua warga bulan ini
+filter harga 100rb sampai 300rb
 ```
 
 ```text
-kirim tagihan QRIS untuk Yanto
+cek ongkir ke Surabaya
 ```
 
 ```text
-kirim tagihan bank transfer BCA untuk Siti
-```
-
-```text
-jalankan workflow billing lengkap
-```
-
-```text
-jalankan workflow setiap 1 jam
-```
-
-```text
-catat pengeluaran Rp 20.000 untuk bayar sampah
+checkout sekarang
 ```
 
 ```text

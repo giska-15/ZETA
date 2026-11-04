@@ -1,0 +1,123 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: zeta-postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=zeta
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data:rw
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - zeta-network
+
+  # WAHA (WhatsApp HTTP API)
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: zeta-waha
+    environment:
+      - WAHA_API_KEY=${WAHA_API_KEY:-secret}
+      - SESSION=${WAHA_SESSION:-default}
+      - WAHA_WEBHOOK_URL=${WAHA_WEBHOOK_URL:-http://host.docker.internal:3000/webhook/waha}
+      - WAHA_WEBHOOK_EVENTS=message,session
+      - WAHA_DEV_MODE=false
+      - WAHA_DASHBOARD_ENABLED=true
+    volumes:
+      - waha-data:/var/lib/wa-hab:rw
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+    networks:
+      - zeta-network
+
+  # ElizaOS Server (optional - can run locally)
+  elizaos:
+    image: ${DOCKER_IMAGE:-elizaos/elizaos:latest}
+    container_name: zeta-elizaos
+    environment:
+      # Core AI providers (at least one required)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_SMALL_MODEL=${OPENROUTER_SMALL_MODEL:-google/gemini-2.0-flash-001}
+      - OPENROUTER_LARGE_MODEL=${OPENROUTER_LARGE_MODEL:-google/gemini-2.5-flash}
+      - OPENROUTER_EMBEDDING_MODEL=${OPENROUTER_EMBEDDING_MODEL:-openai/text-embedding-3-small}
+      - OPENROUTER_EMBEDDING_DIMENSIONS=${OPENROUTER_EMBEDDING_DIMENSIONS:-1536}
+
+      # Database (required for production)
+      - POSTGRES_URL=${POSTGRES_URL:-postgresql://postgres:postgres@postgres:5432/zeta}
+
+      # DOKU Payment Integration
+      - DOKU_CLIENT_ID=${DOKU_CLIENT_ID:-}
+      - DOKU_SECRET_KEY=${DOKU_SECRET_KEY:-}
+      - DOKU_AUTHORIZATION=${DOKU_AUTHORIZATION:-}
+      - DOKU_IS_PRODUCTION=${DOKU_IS_PRODUCTION:-true}
+      - DOKU_BASE_URL=${DOKU_BASE_URL:-https://api.doku.com}
+      - DOKU_MCP_URL=${DOKU_MCP_URL:-https://api.doku.com/doku-mcp-server/mcp}
+      - DOKU_MCP_API_KEY=${DOKU_MCP_API_KEY:-}
+      - APP_URL=${APP_URL:-http://localhost:3000}
+
+      # WAHA WhatsApp
+      - WAHA_BASE_URL=${WAHA_BASE_URL:-http://waha:3000}
+      - WAHA_API_KEY=${WAHA_API_KEY:-secret}
+      - WAHA_SESSION=${WAHA_SESSION:-default}
+
+      # RajaOngkir
+      - RAJAONGKIR_API_KEY=${RAJAONGKIR_API_KEY:-}
+      - RAJAONGKIR_ORIGIN_CITY_ID=${RAJAONGKIR_ORIGIN_CITY_ID:-501}
+
+      # Shopee Bot
+      - SHOPEE_HEADLESS=${SHOPEE_HEADLESS:-false}
+      - SHOPEE_PROFILE_DIR=${SHOPEE_PROFILE_DIR:-./shopee-profile}
+      - SHOPEE_DEFAULT_PAYMENT=${SHOPEE_DEFAULT_PAYMENT:-ShopeePay}
+      - SHOPEE_COURIER_PREFERENCE=${SHOPEE_COURIER_PREFERENCE:-JNE,J&T,SiCepat}
+
+      # Fee Calculator
+      - FEE_TIER_1_MAX=${FEE_TIER_1_MAX:-49999}
+      - FEE_TIER_1_PCT=${FEE_TIER_1_PCT:-2}
+      - FEE_TIER_2_MAX=${FEE_TIER_2_MAX:-499999}
+      - FEE_TIER_2_PCT=${FEE_TIER_2_PCT:-1.5}
+      - FEE_TIER_3_MAX=${FEE_TIER_3_MAX:-999999}
+      - FEE_TIER_3_PCT=${FEE_TIER_3_PCT:-1}
+      - FEE_TIER_4_PCT=${FEE_TIER_4_PCT:-0.75}
+
+      # Server configuration
+      - SERVER_PORT=${SERVER_PORT:-3000}
+      - ELIZA_UI_ENABLE=${ELIZA_UI_ENABLE:-true}
+      - NODE_ENV=${NODE_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      waha:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - zeta-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  zeta-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  waha-data:
+    driver: local

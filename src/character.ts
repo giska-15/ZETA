@@ -111,6 +111,67 @@ Jangan mengarang data pembayaran. Untuk aksi, biarkan action mengirim hasil.`,
         },
       },
     ],
+    // Shopping workflow examples
+    [
+      { name: "{{name1}}", content: { text: "cari produk ini di shopee", attachments: [{ id: "img-1", url: "https://example.com/foto.jpg" }] } },
+      {
+        name: "BendaharaAI",
+        content: {
+          text: "",
+          actions: ["SEARCH_PRODUCT_FROM_IMAGE"],
+        },
+      },
+    ],
+    [
+      { name: "{{name1}}", content: { text: "yang第二个 dengan harga maksimal 500rb" } },
+      {
+        name: "BendaharaAI",
+        content: {
+          text: "",
+          actions: ["FILTER_PRODUCTS"],
+        },
+      },
+    ],
+    [
+      { name: "{{name1}}", content: { text: "hitung ongkir ke Jakarta" } },
+      {
+        name: "BendaharaAI",
+        content: {
+          text: "",
+          actions: ["CALCULATE_SHIPPING"],
+        },
+      },
+    ],
+    [
+      { name: "{{name1}}", content: { text: "oke lanjut checkout" } },
+      {
+        name: "BendaharaAI",
+        content: {
+          text: "",
+          actions: ["CALCULATE_FEE"],
+        },
+      },
+    ],
+    [
+      { name: "{{name1}}", content: { text: "bayar sekarang" } },
+      {
+        name: "BendaharaAI",
+        content: {
+          text: "",
+          actions: ["CREATE_PAYMENT"],
+        },
+      },
+    ],
+    [
+      { name: "{{name1}}", content: { text: "sudah dibayar" } },
+      {
+        name: "BendaharaAI",
+        content: {
+          text: "",
+          actions: ["CHECKOUT_SHOPEE"],
+        },
+      },
+    ],
   ],
   style: {
     all: [

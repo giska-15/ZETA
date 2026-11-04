@@ -47,6 +47,10 @@ async function build() {
             '@elizaos/plugin-sql',
             '@elizaos/cli',
             'zod',
+            // Playwright ships native/optional deps that Bun cannot bundle
+            'playwright',
+            'playwright-core',
+            'playwright-core/lib/server/registry',
           ],
           naming: {
             entry: '[dir]/[name].[ext]',

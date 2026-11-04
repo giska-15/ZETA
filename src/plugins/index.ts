@@ -6,6 +6,19 @@ import { komunitasProvider } from "./provider.ts";
 import { allRoutes } from "./routes.ts";
 import { KomunitasService } from "./komunitas-service.ts";
 import { komunitasEvaluator } from "./evaluator.ts";
+// Shopping bot actions
+import {
+  searchProductFromImage,
+  filterProducts,
+  calculateShipping,
+  calculateFee,
+  createPayment,
+  checkoutShopeeAction,
+  fullShoppingFlow,
+  shoppingFlow,
+} from "../actions/index.ts";
+import { zetaProvider } from "./zeta-provider.ts";
+import { zetaWahaWebhookRoute, zetaStatusRoute } from "./zeta-routes.ts";
 
 export { KomunitasService, getKomunitasService } from "./komunitas-service.ts";
 
@@ -36,6 +49,15 @@ const leanActionDescriptions: Record<string, string> = {
   SIMULATE_PAYMENT: "Simulasikan pembayaran demo.",
   START_ONBOARDING: "Mulai setup komunitas.",
   UPDATE_KAS_BALANCE: "Catat pemasukan/pengeluaran kas.",
+  // Shopping bot actions
+  SEARCH_PRODUCT_FROM_IMAGE: "Cari produk di Shopee dari foto.",
+  FILTER_PRODUCTS: "Filter produk berdasarkan harga/rating.",
+  CALCULATE_SHIPPING: "Hitung ongkir via RajaOngkir.",
+  CALCULATE_FEE: "Hitung biaya layanan tiered (2%-0.75%).",
+  CREATE_PAYMENT: "Buat pembayaran QRIS via DOKU.",
+  CHECKOUT_SHOPEE: "Checkout ke Shopee via Playwright.",
+  FULL_SHOPPING_FLOW: "Jalankan flow lengkap: cari → filter → ongkir → fee → payment → checkout.",
+  SHOPPING_FLOW: "Alur belanja Zeta: foto produk → cari di Shopee → filter → ongkir → fee → QRIS → checkout.",
 };
 
 const keepOneExample = new Set([
@@ -44,9 +66,32 @@ const keepOneExample = new Set([
   "GET_KAS_SUMMARY",
   "GET_UNPAID_INVOICES",
   "START_ONBOARDING",
+  "SEARCH_PRODUCT_FROM_IMAGE",
+  "FILTER_PRODUCTS",
+  "CALCULATE_SHIPPING",
+  "CALCULATE_FEE",
+  "CREATE_PAYMENT",
+  "CHECKOUT_SHOPEE",
+  "FULL_SHOPPING_FLOW",
+  "SHOPPING_FLOW",
 ]);
 
-const promptLeanActions: Action[] = [...onboardingActions, ...allActions].map(
+const shoppingActions: Action[] = [
+  shoppingFlow,
+  searchProductFromImage,
+  filterProducts,
+  calculateShipping,
+  calculateFee,
+  createPayment,
+  checkoutShopeeAction,
+  fullShoppingFlow,
+];
+
+const promptLeanActions: Action[] = [
+  ...onboardingActions,
+  ...allActions,
+  ...shoppingActions,
+].map(
   (action) => ({
     ...action,
     description: leanActionDescriptions[action.name] ?? action.description,
@@ -110,9 +155,9 @@ const plugin: Plugin = {
   },
   services: [KomunitasService],
   actions: promptLeanActions,
-  providers: [komunitasProvider],
+  providers: [komunitasProvider, zetaProvider],
   evaluators: [komunitasEvaluator],
-  routes: allRoutes,
+  routes: [...allRoutes, zetaWahaWebhookRoute, zetaStatusRoute],
 };
 
 export default plugin;

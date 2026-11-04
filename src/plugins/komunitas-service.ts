@@ -53,8 +53,18 @@ export class KomunitasService extends Service {
   }
 
   private async initDb() {
-    await db.initSchema();
-    logger.info("KomunitasAI database initialized");
+    // The shopping-bot (Zeta) does not need Postgres. If the community
+    // database is unavailable we degrade gracefully instead of aborting
+    // the whole plugin — community features simply become unavailable.
+    try {
+      await db.initSchema();
+      logger.info("KomunitasAI database initialized");
+    } catch (error) {
+      logger.warn(
+        { err: error instanceof Error ? error.message : String(error) },
+        "KomunitasAI database unavailable — community features disabled (Zeta shopping flow unaffected)",
+      );
+    }
   }
 
   static async stop(runtime: IAgentRuntime) {
